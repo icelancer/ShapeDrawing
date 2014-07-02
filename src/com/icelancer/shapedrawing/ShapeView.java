@@ -3,14 +3,13 @@ package com.icelancer.shapedrawing;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.icelancer.shapefile.shape.Point;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.View;
+
+import com.icelancer.shapefile.shape.Point;
 
 public class ShapeView extends View {
 	private Paint paint;
@@ -31,8 +30,7 @@ public class ShapeView extends View {
 			canvas.drawLines(list, paint);
 		}
 		
-		float[] line = {3,3,100, 100};
-		canvas.drawLines(line, paint);
+
 	}
 	
 	public void drawPolyline (List<List<Point>> partsList, double[] bbox) {
@@ -44,10 +42,10 @@ public class ShapeView extends View {
 			idx = 0;
 			
 			for (Point point: list) {
-				pointList[idx++] = (float) point.getX() - (float)bbox[0];
-				pointList[idx++] = (float) point.getY() - (float)bbox[1];
+				pointList[idx++] = ((float) point.getX() - (float)bbox[0]) / 800;
+				pointList[idx++] = ((float) point.getY() - (float)bbox[1]) / 800;
 				
-				Log.i("SHAPE", point.getX() + " = " + ((float) point.getX() - (float)bbox[0]));
+//				Log.i("SHAPE", point.getX() + " = " + ((float) point.getX() - (float)bbox[0]));
 			}
 			
 			this.pointList.add(pointList);

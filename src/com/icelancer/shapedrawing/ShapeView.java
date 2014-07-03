@@ -17,7 +17,7 @@ public class ShapeView extends View {
 	
 	public ShapeView(Context context) {
 		super(context);
-		this.pointList = new ArrayList<>();
+		this.pointList = new ArrayList<float[]>();
 		this.paint = new Paint();
 		paint.setColor(Color.RED);
 	}

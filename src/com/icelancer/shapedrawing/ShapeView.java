@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.View;
 
@@ -17,7 +18,8 @@ public class ShapeView extends View {
 	private Paint paint;
 	private List<float[]> pointList;
 	private Matrix matrix;
-	private double[] bbox;
+	private RectF drawableRect;
+	private RectF viewRect;
 	
 	public ShapeView(Context context) {
 		super(context);
@@ -27,29 +29,27 @@ public class ShapeView extends View {
 		
 		this.matrix = new Matrix();
 		
-//		matrix.setRotate(180, this.getWidth()/2, this.getHeight()/2);
-		
+		Log.i(VIEW_LOG_TAG, this.getWidth()+"");
+	}
+	
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		this.viewRect = new RectF(0, 0, w, h);
 	}
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		double mapWidth = bbox[2] - bbox[0];
-		double mapHeight = bbox[3] - bbox[1];
-		int screenWidth = canvas.getWidth();
-		int screenHeight = canvas.getHeight();
 		
-		matrix.setScale((float)(screenWidth/mapWidth), (float)(screenHeight/mapHeight));
+		matrix.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
 		
-		matrix.setRotate(180);
-		
-		canvas.setMatrix(matrix);
+		matrix.postRotate(180, this.getWidth()/2, this.getHeight()/2);
+		canvas.concat(matrix);
 		
 		for (float[] list: this.pointList) {
 			canvas.drawLines(list, paint);
 		}
-		
-		
 		
 	}
 	
@@ -69,10 +69,11 @@ public class ShapeView extends View {
 			this.pointList.add(pointList);
 		}
 		
-		this.bbox = bbox;
+		float mapWidth = (float) (bbox[2] - bbox[0]);
+		float mapHeight = (float) (bbox[3] - bbox[1]);
 		
+		
+		this.drawableRect = new RectF(0, 0, mapWidth, mapHeight);
 	}
 	
-	
-
 }

@@ -10,11 +10,9 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.FloatMath;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.ScaleGestureDetector.OnScaleGestureListener;
 
 import com.icelancer.shapefile.shape.Point;
 
@@ -25,6 +23,7 @@ public class ShapeView extends View {
 	private RectF drawableRect;
 	private RectF viewRect;
 	private ScaleGestureDetector detector;
+	private float oldScale = 1;
 	
 	
 	public ShapeView(Context context) {
@@ -35,40 +34,85 @@ public class ShapeView extends View {
 		
 		this.matrix = new Matrix();
 		
-		Log.i(VIEW_LOG_TAG, this.getWidth()+"");
-		
-		this.detector = new ScaleGestureDetector(this.getContext(), new ScaleGestureDetector.OnScaleGestureListener(){
+		this.detector = new ScaleGestureDetector(this.getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener(){
 
 			@Override
 			public boolean onScale(ScaleGestureDetector detector) {
+				float scale = detector.getScaleFactor();
+
+				scale *= oldScale;
+
+				changeScale(scale, detector.getFocusX(), detector.getFocusY());
 				
-				return false;
+				return super.onScale(detector);
 			}
-
-			@Override
-			public boolean onScaleBegin(ScaleGestureDetector detector) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
+			
 			@Override
 			public void onScaleEnd(ScaleGestureDetector detector) {
-				// TODO Auto-generated method stub
-				
-			}});
+				super.onScaleEnd(detector);
+				oldScale = oldScale * detector.getScaleFactor();
+			}
+		});
 		
 		this.setOnTouchListener(new OnTouchListener() {
-			private float initDistance;
+			private float initX;
+			private float initY;
 			
+				
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				detector.onTouchEvent(event);
+				
+				if (detector.isInProgress() == false) {
+					int index = event.getActionIndex();
+			        int action = event.getActionMasked();
+			        int pointerId = event.getPointerId(index);
+
+			        switch(action) {
+		            case MotionEvent.ACTION_DOWN:
+		            	initX = event.getX(index);
+		            	initY = event.getY(index);
+		                break;
+		            case MotionEvent.ACTION_MOVE:
+		               float curX = event.getX(index);
+		               float curY = event.getY(index);;
+		               move(curX - initX, curY - initY);
+		               
+		               initX = curX;
+		               initY = curY;
+		               break;
+		            case MotionEvent.ACTION_UP:
+		            case MotionEvent.ACTION_CANCEL:
+		                
+		                break;
+			        }
+				}
+
 				return true;
 			}
-
+			
+			private float calcDistance (float x1, float y1, float x2, float y2) {
+				float dx = x1 - x2;
+	    		float dy = y1 - y2;
+	    		
+				return FloatMath.sqrt(dx * dx + dy * dy);
+			}
 		});
 	}
 	
+	private void changeScale (float scale, float x, float y) {
+		matrix.setRectToRect(drawableRect, viewRect, Matrix.ScaleToFit.CENTER);
+		matrix.postRotate(180, this.getWidth()/2, this.getHeight()/2);
+		matrix.postScale(scale, scale, x, y);
+		
+		invalidate();
+	}
+	
+	private void move(float dx, float dy) {
+		matrix.postTranslate(dx, dy);
+		
+		invalidate();
+	}
 	
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
